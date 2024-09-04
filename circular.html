@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Circulars</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .circular {
+            background-color: #e8e8e8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        h3 {
+            margin: 0;
+        }
+        small {
+            color: #666;
+        }
+        button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: #d9534f;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Post a Circular</h2>
+        <input type="text" id="circularTitle" placeholder="Enter Circular Title" required>
+        <br><br>
+        <textarea id="circularContent" placeholder="Enter Circular Content" required></textarea>
+        <br><br>
+        <button onclick="postCircular()">Post Circular</button>
+        <hr>
+        <h2>All Circulars</h2>
+        <div id="circular-list"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyf4UxAJlsT3EjbNIVqCKQ4cjecrRgI0A",
+            authDomain: "myauth-78eab.firebaseapp.com",
+            databaseURL: "https://myauth-78eab-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "myauth-78eab",
+            storageBucket: "myauth-78eab.appspot.com",
+            messagingSenderId: "1081084619188",
+            appId: "1:1081084619188:web:cb90c0140814cc6cfa2ae1"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Function to post a circular
+        function postCircular() {
+            const title = document.getElementById('circularTitle').value;
+            const content = document.getElementById('circularContent').value;
+            const date = new Date().toISOString().slice(0, 10); // Get today's date in YYYY-MM-DD format
+
+            if (title && content) {
+                const newCircularRef = db.ref('circulars').push();
+                newCircularRef.set({
+                    title: title,
+                    content: content,
+                    date: date
+                }).then(() => {
+                    alert('Circular posted successfully!');
+                    loadCirculars(); // Reload circulars after posting
+                    document.getElementById('circularTitle').value = '';
+                    document.getElementById('circularContent').value = '';
+                }).catch((error) => {
+                    alert('Error: ' + error.message);
+                });
+            } else {
+                alert('Please enter both title and content for the circular.');
+            }
+        }
+
+        // Function to load all circulars
+        function loadCirculars() {
+            const circularsRef = db.ref('circulars');
+            circularsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                const circularList = document.getElementById('circular-list');
+                circularList.innerHTML = ''; // Clear existing list
+
+                if (data) { // Check if data exists
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            const circular = data[key];
+                            const circularDiv = document.createElement('div');
+                            circularDiv.classList.add('circular');
+                            circularDiv.innerHTML = `
+                                <h3>${circular.title}</h3>
+                                <p>${circular.content}</p>
+                                <small>Date: ${circular.date}</small>
+                                <button onclick="deleteCircular('${key}')">Delete</button>
+                                <hr>
+                            `;
+                            circularList.appendChild(circularDiv);
+                        }
+                    }
+                } else {
+                    // Handle case where there are no circulars
+                    const noCircularsMessage = document.createElement('p');
+                    noCircularsMessage.textContent = "No circulars found.";
+                    circularList.appendChild(noCircularsMessage);
+                }
+            });
+        }
+
+        // Function to delete a circular
+        function deleteCircular(circularID) {
+            db.ref('circulars/' + circularID).remove()
+            .then(() => {
+                alert('Circular deleted successfully!');
+                loadCirculars(); // Reload circulars after deletion
+            })
+            .catch((error) => {
+                alert('Error: ' + error.message);
+            });
+        }
+
+        // Load circulars when the page loads
+        window.onload = loadCirculars;
+    </script>
+</body>
+</html>
