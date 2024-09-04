@@ -217,7 +217,7 @@
           // Store role in local storage to use later
           localStorage.setItem('userRole', role);
           // Redirect to loading screen
-          window.location.href = "#";
+          window.location.href = "loadingstart.html";
         })
         .catch((error) => {
           // Handle login errors
@@ -235,7 +235,7 @@
           if (role === 'admin') {
             window.location.href = "index.html";
           } else if (role === 'teacher') {
-            window.location.href = "circular.html";  <!-- Redirect to circular.html for teachers -->
+            window.location.href = "teacher.html";  <!-- Redirect to circular.html for teachers -->
           }
         } else {
           // If role is not set, redirect to login page
